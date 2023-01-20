@@ -51,6 +51,7 @@ template Rollup(state_k, max_tx_k) {
 
     // 2. tx_hash_former_array, tx_hash_latter_arrayの連結ビット列からSHA256ハッシュを求め、all_txs_hashと一致することを確認する。ただし、dummyのtxに関しては、0が256個連続したbit列を使用する。
     component allTxHasher = Sha256(256 * max_tx);
+    // tx_hash_former_array、tx_hash_latter_arrayの各要素をビット列に変換し、それらを順にallTxHasherの入力に入れる。
     component txHashFormers[max_tx];
     component txHashLatters[max_tx];
     for(var i=0;i<max_tx;i++) {
@@ -63,6 +64,7 @@ template Rollup(state_k, max_tx_k) {
             allTxHasher.in[256*i+128+j] <== txHashLatters[i].out[j];
         }
     }
+    // allTxHasherの出力のうち、前半128bitをallTxHashFormer、後半128bitをallTxHashLatterで整数に変換し、それぞれall_txs_hash_former、all_txs_hash_latterと等しいことを確かめる。
     component allTxHashFormer = Bits2Num(128);
     component allTxHashLatter = Bits2Num(128);
     for(var i=0;i<128;i++) {
@@ -72,9 +74,7 @@ template Rollup(state_k, max_tx_k) {
     allTxHashFormer.out === all_txs_hash_former;
     allTxHashLatter.out === all_txs_hash_latter;
 
-    
-
-    // 2. ProcessTxでそれぞれのtxのintermediate_rootを求める。
+    // 3. ProcessTxでそれぞれのtxのintermediate_rootを求める。
     // [Hint] old_accounts_rootにはintermediate_root_arrayの適切な要素を入れる。では、intermediate_root_arrayの初期値は？
     intermediate_root_array[0] <== old_accounts_root;
     for(var i = 0; i < max_tx; i++) {
