@@ -10,7 +10,10 @@ template DualMux(){
     signal input s;
     signal output out[2];
     
-    // [TODO]
+    s*(s-1) === 0;
+
+    out[0] <== (in[1] - in[0])*s + in[0];
+    out[1] <== (in[0] - in[1])*s + in[1];
 }
 
 // leaf値とmerkle proofから、merkle rootを計算する。
@@ -28,8 +31,8 @@ template GetMerkleRoot(k){
 
     for(var i = 0; i < k; i++){
         selectors[i] = DualMux();
-        selectors[i].in[0] <== i == 0 ? leaf : /* [TODO] */;
-        selectors[i].in[1] <== /* [TODO] */;
+        selectors[i].in[0] <== i == 0 ? leaf : hashers[i-1].out;
+        selectors[i].in[1] <== paths2_root[i];
         selectors[i].s <== paths2_root_pos[i];
 
         hashers[i] = MultiMiMC7(2,91);
