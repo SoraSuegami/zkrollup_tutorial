@@ -44,72 +44,43 @@ template Rollup(state_k, max_tx_k, amoutnBitSize) {
     // 1. last_tx_indexの値からis_enable_arrayを求める。
     // [Hint] LessEqThanを使う。
     for(var i = 0; i < max_tx; i++) {
-        is_enable_array[i] = LessEqThan(max_tx_k);
-        is_enable_array[i].in[0] <== i;
-        is_enable_array[i].in[1] <== last_tx_index;
+        /*[TODO]*/
     }
 
     // 2. tx_hash_former_array, tx_hash_latter_arrayの連結ビット列からSHA256ハッシュを求め、all_txs_hashと一致することを確認する。ただし、dummyのtxに関しては、0が256個連続したbit列を使用する。
-    component allTxHasher = Sha256(256 * max_tx);
+    component allTxHasher = /*[TODO]*/
     // Num2Bits.Bits2Numはlittle endianのビット列を想定しているので、反転する必要があることに注意。
     // tx_hash_former_array、tx_hash_latter_arrayの各要素をビット列に変換し、それらを順にallTxHasherの入力に入れる。
     component txHashFormers[max_tx];
     component txHashLatters[max_tx];
     for(var i=0;i<max_tx;i++) {
-        txHashFormers[i] = Num2Bits(128);
-        txHashLatters[i] = Num2Bits(128);
-        txHashFormers[i].in <== tx_hash_former_array[i];
-        txHashLatters[i].in <== tx_hash_latter_array[i];
-        for(var j=0;j<128;j++) {
-            allTxHasher.in[256*i+j] <== txHashFormers[i].out[127-j];
-            allTxHasher.in[256*i+128+j] <== txHashLatters[i].out[127-j];
-        }
+        /*[TODO]*/
     }
     // allTxHasherの出力のうち、前半128bitをallTxHashFormer、後半128bitをallTxHashLatterで整数に変換し、それぞれall_txs_hash_former、all_txs_hash_latterと等しいことを確かめる。
-    component allTxHashFormer = Bits2Num(128);
-    component allTxHashLatter = Bits2Num(128);
+    component allTxHashFormer = /*[TODO]*/
+    component allTxHashLatter = /*[TODO]*/
     for(var i=0;i<128;i++) {
-        allTxHashFormer.in[i] <== allTxHasher.out[127-i];
-        allTxHashLatter.in[i] <== allTxHasher.out[128+127-i];
+        /*[TODO]*/
     }
-    allTxHashFormer.out === all_txs_hash_former;
-    allTxHashLatter.out === all_txs_hash_latter;
+    /*[TODO]*/
 
     // 3. ProcessTxでそれぞれのtxのintermediate_rootを求める。
     // [Hint] old_accounts_rootにはintermediate_root_arrayの適切な要素を入れる。では、intermediate_root_arrayの初期値は？
-    intermediate_root_array[0] <== old_accounts_root;
+    /*[TODO]*/
     for(var i = 0; i < max_tx; i++) {
-        tx_processers[i] = ProcessTx(state_k,state_k,amoutnBitSize);
-        tx_processers[i].old_accounts_root <== intermediate_root_array[i];
-
-        tx_processers[i].sender_account_id <== sender_account_id_array[i];
-        tx_processers[i].receiver_account_id <== receiver_account_id_array[i];
-        tx_processers[i].amount <== amount_array[i];
-        tx_processers[i].tx_hash_former <== tx_hash_former_array[i];
-        tx_processers[i].tx_hash_latter <== tx_hash_latter_array[i];
-        tx_processers[i].signature_R8x <== signature_R8x_array[i];
-        tx_processers[i].signature_R8y <== signature_R8y_array[i];
-        tx_processers[i].signature_S <== signature_S_array[i];
-
-        tx_processers[i].sender_balance <== sender_balance_array[i];
-        tx_processers[i].receiver_balance <== receiver_balance_array[i];
+        /*[TODO]*/
         for(var j=0; j<2; j++) {
-            tx_processers[i].sender_pubkey[j] <== sender_pubkey_array[i][j];
-            tx_processers[i].receiver_pubkey[j] <== receiver_pubkey_array[i][j];
+            /*[TODO]*/
         }
         
         for(var j=0; j<state_k; j++) {
-            tx_processers[i].sender_proof[j] <== sender_proof_array[i][j];
-            tx_processers[i].sender_proof_pos[j] <== sender_proof_pos_array[i][j];
-            tx_processers[i].receiver_proof[j] <== receiver_proof_array[i][j];
-            tx_processers[i].receiver_proof_pos[j] <== receiver_proof_pos_array[i][j];
+            /*[TODO]*/
         }
-        tx_processers[i].is_enable <== is_enable_array[i].out;
-        intermediate_root_array[i+1] <== tx_processers[i].new_accounts_root;
+        /*[TODO]*/
     }
 
     // 3. new_accounts_rootに最後に計算されたmerkle treeのroot値を代入する。
-    new_accounts_root <== intermediate_root_array[max_tx];
+    /*[TODO]*/
 }
 
 component main {public [old_accounts_root, all_txs_hash_former, all_txs_hash_latter, last_tx_index]} = Rollup(8,5,32);
