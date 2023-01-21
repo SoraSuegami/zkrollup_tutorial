@@ -39,6 +39,10 @@ template GetMerkleRoot(k){
         hashers[i].k <== 1;
         hashers[i].in[0] <== selectors[i].out[0];
         hashers[i].in[1] <== selectors[i].out[1];
+        // log(i);
+        // log(hashers[i].in[0]);
+        // log(hashers[i].in[1]);
+        // log(hashers[i].out);
     }
 
     out <== hashers[k-1].out;

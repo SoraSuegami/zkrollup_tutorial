@@ -7,16 +7,16 @@ include "../../node_modules/circomlib/circuits/sha256/sha256.circom";
 include "../../node_modules/circomlib/circuits/bitify.circom";
 
 
-template ProcessTx(k){
+template ProcessTx(k,idBitSize,amoutnBitSize){
     // k is the depth of accounts tree
 
     // accounts tree info
     signal input old_accounts_root; // 変更前のmerkle treeのroot値
 
     // transactions info 
-    signal input sender_account_id; // 16 bit
-    signal input receiver_account_id; // 16 bit
-    signal input amount; // 32 bit
+    signal input sender_account_id; // idBitSize bit
+    signal input receiver_account_id; // idBitSize bit
+    signal input amount; // amoutnBitSize bit
     // tx_hash = SHA256(sender_account_id || receiver_account_id || amount) 
     signal input tx_hash_former; // 256 bitのtx_hashのうち、前半128 bit。
     signal input tx_hash_latter; // 256 bitのtx_hashのうち、後半128 bit。
@@ -60,35 +60,35 @@ template ProcessTx(k){
     // hash msg
     // 2. transaction (tx)のhash値を求め、入力されたtx_hashの値と等しいことを確認する。。
     // [Hint] Sha256 componentを利用する。入力値はbit値で入力する必要があるため、Num2Bits componentで変換する。
-    component txHasher = Sha256(16+16+32);
-    component senderIdBits = Num2Bits(16);
-    component receiverIdBits = Num2Bits(16);
-    component amountBits = Num2Bits(32);
+    component txHasher = Sha256(idBitSize*2+amoutnBitSize);
+    component senderIdBits = Num2Bits(idBitSize);
+    component receiverIdBits = Num2Bits(idBitSize);
+    component amountBits = Num2Bits(amoutnBitSize);
     senderIdBits.in <== sender_account_id;
     receiverIdBits.in <== receiver_account_id;
     amountBits.in <== amount;
-    // txHasherにsenderIdBits、receiverIdBits、amountBitsを入力する。
-    for(var i=0;i<16;i++) {
-        txHasher.in[i] <== senderIdBits.out[i];
+    // txHasherにsenderIdBits、receiverIdBits、amountBitsを入力する。ただし、Num2Bitsはlittle endianのビット列を出力するので、反転して入力する。
+    for(var i=0;i<idBitSize;i++) {
+        txHasher.in[i] <== senderIdBits.out[idBitSize-i-1];
     }
-    for(var i=0;i<16;i++) {
-        txHasher.in[16+i] <== receiverIdBits.out[i];
+    for(var i=0;i<idBitSize;i++) {
+        txHasher.in[idBitSize+i] <== receiverIdBits.out[idBitSize-i-1];
     }
-    for(var i=0;i<32;i++) {
-        txHasher.in[32+i] <== amountBits.out[i];
+    for(var i=0;i<amoutnBitSize;i++) {
+        txHasher.in[idBitSize*2+i] <== amountBits.out[amoutnBitSize-i-1];
     }
-    // txHasherの出力を、txHashFormer、txHashFormerで整数値に変換してtx_hash_former、tx_hash_latterと等しいか確認する。
+    // txHasherの出力を、txHashFormer、txHashFormerで整数値に変換してtx_hash_former、tx_hash_latterと等しいか確認する。ただし、Bits2Numはlittle endianのビット列を想定しているので、反転して入力する。
     component txHashFormer = Bits2Num(128);
     component txHashLatter = Bits2Num(128);
     for(var i=0;i<128;i++) {
-        txHashFormer.in[i] <== txHasher.out[i];
+        txHashFormer.in[i] <== txHasher.out[127-i];
     }
     for(var i=0;i<128;i++) {
-        txHashLatter.in[i] <== txHasher.out[128+i];
+        txHashLatter.in[i] <== txHasher.out[128+127-i];
     }
-    tx_hash_former === txHashFormer.out;
-    tx_hash_latter === txHashLatter.out;
-
+    is_enable*(tx_hash_former - txHashFormer.out) === 0;
+    is_enable*(tx_hash_latter - txHashLatter.out) === 0;
+    
     // check that transaction was signed by sender
     // 3. senderの電子署名(signature)を検証する。ただし、署名対象のメッセージはMultiMiMC7(tx_hash_former, tx_hash_latter)。
     // メッセージの計算

@@ -5,7 +5,7 @@ include "../node_modules/circomlib/circuits/sha256/sha256.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 
 
-template Rollup(state_k, max_tx_k) {
+template Rollup(state_k, max_tx_k, amoutnBitSize) {
     var max_tx = 2**max_tx_k;
 
     // accounts tree info
@@ -51,6 +51,7 @@ template Rollup(state_k, max_tx_k) {
 
     // 2. tx_hash_former_array, tx_hash_latter_arrayの連結ビット列からSHA256ハッシュを求め、all_txs_hashと一致することを確認する。ただし、dummyのtxに関しては、0が256個連続したbit列を使用する。
     component allTxHasher = Sha256(256 * max_tx);
+    // Num2Bits.Bits2Numはlittle endianのビット列を想定しているので、反転する必要があることに注意。
     // tx_hash_former_array、tx_hash_latter_arrayの各要素をビット列に変換し、それらを順にallTxHasherの入力に入れる。
     component txHashFormers[max_tx];
     component txHashLatters[max_tx];
@@ -60,16 +61,16 @@ template Rollup(state_k, max_tx_k) {
         txHashFormers[i].in <== tx_hash_former_array[i];
         txHashLatters[i].in <== tx_hash_latter_array[i];
         for(var j=0;j<128;j++) {
-            allTxHasher.in[256*i+j] <== txHashFormers[i].out[j];
-            allTxHasher.in[256*i+128+j] <== txHashLatters[i].out[j];
+            allTxHasher.in[256*i+j] <== txHashFormers[i].out[127-j];
+            allTxHasher.in[256*i+128+j] <== txHashLatters[i].out[127-j];
         }
     }
     // allTxHasherの出力のうち、前半128bitをallTxHashFormer、後半128bitをallTxHashLatterで整数に変換し、それぞれall_txs_hash_former、all_txs_hash_latterと等しいことを確かめる。
     component allTxHashFormer = Bits2Num(128);
     component allTxHashLatter = Bits2Num(128);
     for(var i=0;i<128;i++) {
-        allTxHashFormer.in[i] <== allTxHasher.out[i];
-        allTxHashLatter.in[i] <== allTxHasher.out[128+i];
+        allTxHashFormer.in[i] <== allTxHasher.out[127-i];
+        allTxHashLatter.in[i] <== allTxHasher.out[128+127-i];
     }
     allTxHashFormer.out === all_txs_hash_former;
     allTxHashLatter.out === all_txs_hash_latter;
@@ -78,7 +79,7 @@ template Rollup(state_k, max_tx_k) {
     // [Hint] old_accounts_rootにはintermediate_root_arrayの適切な要素を入れる。では、intermediate_root_arrayの初期値は？
     intermediate_root_array[0] <== old_accounts_root;
     for(var i = 0; i < max_tx; i++) {
-        tx_processers[i] = ProcessTx(state_k);
+        tx_processers[i] = ProcessTx(state_k,state_k,amoutnBitSize);
         tx_processers[i].old_accounts_root <== intermediate_root_array[i];
 
         tx_processers[i].sender_account_id <== sender_account_id_array[i];
@@ -111,4 +112,4 @@ template Rollup(state_k, max_tx_k) {
     new_accounts_root <== intermediate_root_array[max_tx];
 }
 
-component main {public [old_accounts_root, all_txs_hash_former, all_txs_hash_latter, last_tx_index]} = Rollup(16,5);
+component main {public [old_accounts_root, all_txs_hash_former, all_txs_hash_latter, last_tx_index]} = Rollup(8,5,32);

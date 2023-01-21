@@ -8,9 +8,9 @@ template LeafExistence(k,l){
 
     signal input preimage[l]; // leaf値を求めるための、l個の要素。
     signal input root; // merkle treeのroot値
-    signal input paths2_root_pos[k]; // 高さi (0<=i<k)ごとの兄弟ノードのハッシュ値
-    signal input paths2_root[k]; // 高さi (0<=i<k)ごとの兄弟ノードが右側にある場合は0、左側にある場合は1。
-    signal input is_enable;
+    signal input paths2_root_pos[k]; // 高さi (0<=i<k)ごとの兄弟ノードが右側にある場合は0、左側にある場合は1。
+    signal input paths2_root[k]; // 高さi (0<=i<k)ごとの兄弟ノードのハッシュ値
+    signal input is_enable; // enableフラグ
 
     // 1. l個の要素からleaf値を求める。
     // [Hint] MultiMiMC7 componentを利用する。
@@ -29,6 +29,8 @@ template LeafExistence(k,l){
         computed_root.paths2_root[w] <== paths2_root[w];
         computed_root.paths2_root_pos[w] <== paths2_root_pos[w];
     }
+    // log("root");
+    // log(root);
 
     // 3. 2で求めたroot値と、入力値のrootが等しいことを検証する。
     is_enable * (root - computed_root.out) === 0;

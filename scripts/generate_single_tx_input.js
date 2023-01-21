@@ -7,7 +7,7 @@ async function main() {
   const mimc7 = await buildMimc7();
   const eddsa = await buildEddsa();
   const F = babyJub.F;
-  
+
   // setup accounts
   const alicePrvKey = Buffer.from("1".toString().padStart(64, "0"), "hex");
   const bobPrvKey = Buffer.from("2".toString().padStart(64, "0"), "hex");
@@ -104,12 +104,12 @@ async function main() {
     sender_proof_pos: ["0"],
     receiver_proof: [BigInt(F.toObject(newAliceHash)).toString()],
     receiver_proof_pos: ["1"],
-    enabled:"1"
+    enabled: "1"
   };
   console.log(BigInt(F.toObject(new_root)).toString());
-  fs.writeFileSync("../circom/input.json",JSON.stringify(inputs),'utf-8');
-  
-  
+  fs.writeFileSync("../circom/input.json", JSON.stringify(inputs), 'utf-8');
+
+
   // const circuit = await wasm_tester("../circom/circuit.circom");
 
   // const w = await circuit.calculateWitness({

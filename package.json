@@ -12,6 +12,10 @@
     "hardhat": "^2.12.5"
   },
   "dependencies": {
-    "circomlib": "github:iden3/circomlib"
+    "circom_tester": "^0.0.19",
+    "circomlib": "github:iden3/circomlib",
+    "circomlibjs": "^0.1.7",
+    "ffjavascript": "^0.2.57",
+    "merkletreejs": "^0.3.9"
   }
 }
