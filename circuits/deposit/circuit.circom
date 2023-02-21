@@ -47,7 +47,7 @@ template ProcessDeposit(k,idBitSize,amoutnBitSize,pubkeyBitSize){
 
     // 2. depositのhash値を求め、入力されたdeposit_hashの値と等しいことを確認する。。
     // [Hint] Sha256 componentを利用する。入力値はbit値で入力する必要があるため、Num2Bits componentで変換する。
-    component depositHasher = Sha256(idBitSize+amoutnBitSize*pubkeyBitSize*2);
+    component depositHasher = Sha256(idBitSize+amoutnBitSize+pubkeyBitSize*2);
     component idBits = Num2Bits(idBitSize);
     component amountBits = Num2Bits(amoutnBitSize);
     component pubkey0Bits = Num2Bits(pubkeyBitSize);
