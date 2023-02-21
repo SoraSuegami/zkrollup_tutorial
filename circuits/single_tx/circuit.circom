@@ -120,10 +120,10 @@ template ProcessTx(k,idBitSize,amoutnBitSize){
     newSenderLeaf.in[3] <== (sender_balance - amount);
     // ただし、sender_balance >= amountでなくてはならない。
     // [Hint] GreaterEqThan componentを利用する。
-    component compareBalance = GreaterEqThan(amoutnBitSize)
-    compareBalance.in[0] <== sender_balance;
-    compareBalance.in[1] <== amount;
-    is_enable*(compareBalance.out - 1) === 0; 
+    component compare_balance = GreaterEqThan(amoutnBitSize);
+    compare_balance.in[0] <== sender_balance;
+    compare_balance.in[1] <== amount;
+    is_enable*(compare_balance.out - 1) === 0; 
     
     // 5. sender stateに対応するleafをnewSenderLeafに置き換えた時の、新しいmerkle treeのrootを求める。
     // [Hint] GetMerkleRootを使う。root値を求めるためにはpaths2_rootやpaths2_root_posの値が必要だが、1とは異なり入力値には直接含まれていない。

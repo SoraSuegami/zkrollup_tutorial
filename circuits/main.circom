@@ -1,9 +1,9 @@
 pragma circom 2.0.0;
 include "./single_tx/circuit.circom";
+include "./deposit/circuit.circom";
 include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/sha256/sha256.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
-
 
 template Rollup(state_k, max_tx_k, amoutnBitSize) {
     var max_tx = 2**max_tx_k;
