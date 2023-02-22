@@ -10,6 +10,7 @@ class StateTree {
         this.states = [];
         this.layers = [];
         this.root = this._computeRoot();
+        this.numNotEmptyStates = 0;
     }
 
     getRoot() {
@@ -26,10 +27,15 @@ class StateTree {
         return this.states[index];
     }
 
+    getNumNotEmptyState() {
+        return this.numNotEmptyStates;
+    }
+
     insertState(state) {
         assert(this.states.length < this.size);
         this.states.push(state);
         this.root = this._computeRoot();
+        this.numNotEmptyStates++;
         // const index = this.states.length - 1;
         // const leaves = this.tree.getLeaves();
         // leaves[index] = state.hash();
@@ -49,6 +55,15 @@ class StateTree {
     getProof(accountId) {
         const index = this.getIndexOfAccountId(accountId);
         assert(index != -1);
+        return this._getProofFromIndex(index);
+    }
+
+    getExclusionProof(accountId) {
+        assert(this.getIndexOfAccountId(accountId) == -1);
+        return this._getProofFromIndex(accountId)
+    }
+
+    _getProofFromIndex(index) {
         const proofs = {
             data: [],
             positions: []
@@ -69,33 +84,17 @@ class StateTree {
         }
         assert(this.layers[this.k][0], this.root);
         return proofs;
-        // //const leaf = BigInt(this.F.toObject(this.tree.getLeaf(index)));
-        // const leaf = this.tree.getLeaf(index);
-        // console.log(leaf);
-        // // console.log("index: " + index);
-        // // console.log("state: ");
-        // // console.log(this.states[index].pubKey0);
-        // // console.log(BigInt(this.F.toObject(this.states[index].pubKey0)).toString(16));
-        // const proof = this.tree.getProof(leaf, index);
-        // console.log(proof[0].data);
-        // return proof.map(p => {
-        //     p.position = p.position == "left" ? 1 : 0;
-        //     return p;
-        // });
-
-
     }
 
-    // verifyProof(accountId, proof, root) {
-    //     const index = this.getIndexOfAccountId(accountId);
-    //     assert(index != -1);
-    //     const leaf = this.tree.getLeaf(index);
-    //     return this.tree.verify(proof, leaf, root);
-    // }
 
     _computeRoot() {
         this.layers = [];
-        let nodes = Array.from(Array(this.size).keys()).map(i => this.states[i] == null ? 0 : this.states[i].hash());
+        let nodes = Array.from(Array(this.size).keys()).map(i => {
+            if (i <= this.states.length - 1) {
+                return this.states[i].hash();
+            }
+            else return this.F.e(0);
+        });
         this.layers.push(nodes);
         for (let i = 0; i < this.k; i++) {
             const newNodes = [];

@@ -1,25 +1,28 @@
 const crypto = require("crypto");
 const { buildBabyjub, buildMimc7, buildEddsa } = require("circomlibjs");
 
-class Tx {
-    constructor(senderAccountId, receiverAccountId, amount, mimc7, eddsa) {
-        this.senderAccountId = senderAccountId;
-        this.receiverAccountId = receiverAccountId;
+class Deposit {
+    constructor(accountId, amount, pubKey0, pubKey1, babyJub, mimc7, eddsa) {
+        this.accountId = accountId;
         this.amount = amount;
+        this.pubKey0 = pubKey0;
+        this.pubKey1 = pubKey1;
+        this.babyJub = babyJub;
         this.mimc7 = mimc7;
         this.eddsa = eddsa;
     }
 
     hash() {
-        const bytes = Buffer.from([
-            this.senderAccountId & 0x00ff,
-            this.receiverAccountId & 0x00ff,
+        let bytesArray = [
+            this.accountId & 0x00ff,
             this.amount & 0xff000000,
             this.amount & 0x00ff0000,
             this.amount & 0x0000ff00,
             this.amount & 0x000000ff,
-        ]);
-        //const bitArray = this._buffer2bitArray(bytes);
+        ];
+        bytesArray = bytesArray.concat(this._F2bytesArray(this.pubKey0, 32));
+        bytesArray = bytesArray.concat(this._F2bytesArray(this.pubKey1, 32));
+        const bytes = Buffer.from(bytesArray);
         const hash = crypto.createHash("sha256")
             .update(bytes);
         return hash;
@@ -27,7 +30,6 @@ class Tx {
 
     getDecomposedHash() {
         const txHash = this.hash().digest("hex");
-        // console.log("txHash: " + txHash);
         const txHashFormer = txHash.slice(0, 32);
         const txHashLatter = txHash.slice(32, 64);
         return [txHashFormer, txHashLatter];
@@ -49,5 +51,19 @@ class Tx {
         }
         return res;
     }
+
+    _F2bytesArray(e, numBytes) {
+        let bytes = [];
+        const F = this.babyJub.F;
+        e = BigInt(F.toObject(e));
+        const mask = 0xffn;
+        for (let i = 0; i < numBytes; i++) {
+            bytes.push(Number(e & mask));
+            e = e >> 8n;
+        }
+        console.assert(e == 0n);
+        bytes = bytes.reverse();
+        return bytes
+    }
 }
-module.exports = Tx;
+module.exports = Deposit;
