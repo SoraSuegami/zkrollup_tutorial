@@ -199,4 +199,4 @@ template Rollup(state_k, max_deposit_k, max_tx_k, amoutnBitSize, pubkeyBitSize) 
     new_accounts_root <== intermediate_root_array[max_deposit+max_tx];
 }
 
-component main {public [old_accounts_root, all_txs_hash_former, all_txs_hash_latter, last_tx_index]} = Rollup(8,5,5,32,254);
+component main {public [old_accounts_root, all_deposits_hash_former, all_deposits_hash_latter, last_deposit_index, all_txs_hash_former, all_txs_hash_latter, last_tx_index]} = Rollup(8,5,5,32,256);
