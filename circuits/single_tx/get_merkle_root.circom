@@ -31,14 +31,14 @@ template GetMerkleRoot(k){
 
     for(var i = 0; i < k; i++){
         selectors[i] = DualMux();
-        selectors[i].in[0] <== i == 0 ? leaf : /*[TODO]*/;
-        selectors[i].in[1] <== /*[TODO]*/;
-        selectors[i].s <== /*[TODO]*/;
+        selectors[i].in[0] <== i == 0 ? leaf : hashers[i-1].out;
+        selectors[i].in[1] <== paths2_root[i];
+        selectors[i].s <== paths2_root_pos[i];
 
         hashers[i] = MultiMiMC7(2,91);
         hashers[i].k <== 1;
-        hashers[i].in[0] <== /*[TODO]*/;
-        hashers[i].in[1] <== /*[TODO]*/;
+        hashers[i].in[0] <== selectors[i].out[0];
+        hashers[i].in[1] <== selectors[i].out[1];
         // log(i);
         // log(hashers[i].in[0]);
         // log(hashers[i].in[1]);

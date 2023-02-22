@@ -64,15 +64,13 @@ template Rollup(state_k, max_deposit_k, max_tx_k, amoutnBitSize, pubkeyBitSize) 
     component deposit_processers[max_deposit];  // ProcessDepositの配列。
     component is_tx_enable_array[max_tx]; // 各txを処理する際のenableフラグの配列。
     component tx_processers[max_tx]; // ProcessTxの配列。
-    signal intermediate_root_array[max_deposit+max_tx+1]; // 途中のmerkle treeのroot値の配列。i個のtxを処理した後のroot値がi+1番目の要素になる。
+    signal intermediate_root_array[/* [TODO]*/]; // 途中のmerkle treeのroot値の配列。i個のtxを処理した後のroot値がi+1番目の要素になる。
 
     // Process deposits
      // 1. last_deposit_indexの値からis_deposit_enable_arrayを求める。
     // [Hint] LessEqThanを使う。
     for(var i = 0; i < max_tx; i++) {
-        is_deposit_enable_array[i] = LessEqThan(max_deposit_k);
-        is_deposit_enable_array[i].in[0] <== i;
-        is_deposit_enable_array[i].in[1] <== last_deposit_index;
+        // [TODO]
     }
     
     // 2. deposit_hash_former_array, deposit_hash_latter_arrayの連結ビット列からSHA256ハッシュを求め、all_deposits_hashと一致することを確認する。ただし、dummyのdepositに関しては、0が256個連続したbit列を使用する。
@@ -82,49 +80,21 @@ template Rollup(state_k, max_deposit_k, max_tx_k, amoutnBitSize, pubkeyBitSize) 
     component depositHashFormers[max_tx];
     component depositHashLatters[max_tx];
     for(var i=0;i<max_tx;i++) {
-        depositHashFormers[i] = Num2Bits(128);
-        depositHashLatters[i] = Num2Bits(128);
-        depositHashFormers[i].in <== deposit_hash_former_array[i];
-        depositHashLatters[i].in <== deposit_hash_latter_array[i];
-        for(var j=0;j<128;j++) {
-            allDepositHasher.in[256*i+j] <== depositHashFormers[i].out[127-j];
-            allDepositHasher.in[256*i+128+j] <== depositHashLatters[i].out[127-j];
-        }
+        // [TODO]
     }
     // allDepositHasherの出力のうち、前半128bitをallDepositHashFormer、後半128bitをallDepositHashLatterで整数に変換し、それぞれall_deposits_hash_former、all_deposits_hash_latterと等しいことを確かめる。
     component allDepositHashFormer = Bits2Num(128);
     component allDepositHashLatter = Bits2Num(128);
     for(var i=0;i<128;i++) {
-        allDepositHashFormer.in[i] <== allDepositHasher.out[127-i];
-        allDepositHashLatter.in[i] <== allDepositHasher.out[128+127-i];
+        // [TODO]
     }
-    allDepositHashFormer.out === all_deposits_hash_former;
-    allDepositHashLatter.out === all_deposits_hash_latter;
+    // [TODO]
 
     // 3. ProcessDepositでそれぞれのdepositのintermediate_rootを求める。
     // [Hint] old_accounts_rootにはintermediate_root_arrayの適切な要素を入れる。では、intermediate_root_arrayの初期値は？
-    intermediate_root_array[0] <== old_accounts_root;
+    // [TODO]
     for(var i = 0; i < max_tx; i++) {
-        deposit_processers[i] = ProcessDeposit(state_k,state_k,amoutnBitSize,pubkeyBitSize);
-        deposit_processers[i].old_accounts_root <== intermediate_root_array[i];
-
-        deposit_processers[i].account_id <== deposit_account_id_array[i];
-        deposit_processers[i].amount <== deposit_amount_array[i];
-        for(var j=0; j<2; j++) {
-            deposit_processers[i].pubkey[j] <== deposit_pubkey_array[i][j];
-        }
-        deposit_processers[i].deposit_hash_former <== deposit_hash_former_array[i];
-        deposit_processers[i].deposit_hash_latter <== deposit_hash_latter_array[i];
-        deposit_processers[i].signature_R8x <== signature_R8x_array[i];
-        deposit_processers[i].signature_R8y <== signature_R8y_array[i];
-        deposit_processers[i].signature_S <== signature_S_array[i];
-
-        for(var j=0; j<state_k; j++) {
-            deposit_processers[i].proof[j] <== deposit_proof_array[i][j];
-            deposit_processers[i].proof_pos[j] <== deposit_proof_pos_array[i][j];
-        }
-        deposit_processers[i].is_enable <== is_deposit_enable_array[i].out;
-        intermediate_root_array[i+1] <== deposit_processers[i].new_accounts_root;
+        // [TODO]
     }
 
 
@@ -167,7 +137,7 @@ template Rollup(state_k, max_deposit_k, max_tx_k, amoutnBitSize, pubkeyBitSize) 
     // [Hint] old_accounts_rootにはintermediate_root_arrayの適切な要素を入れる。では、intermediate_root_arrayの初期値は？
     for(var i = 0; i < max_tx; i++) {
         tx_processers[i] = ProcessTx(state_k,state_k,amoutnBitSize);
-        tx_processers[i].old_accounts_root <== intermediate_root_array[max_deposit+i];
+        tx_processers[i].old_accounts_root <== // [TODO]
 
         tx_processers[i].sender_account_id <== sender_account_id_array[i];
         tx_processers[i].receiver_account_id <== receiver_account_id_array[i];
@@ -196,7 +166,7 @@ template Rollup(state_k, max_deposit_k, max_tx_k, amoutnBitSize, pubkeyBitSize) 
     }
 
     // 4. new_accounts_rootに最後に計算されたmerkle treeのroot値を代入する。
-    new_accounts_root <== intermediate_root_array[max_deposit+max_tx];
+    new_accounts_root <== // [TODO]
 }
 
 component main {public [old_accounts_root, all_deposits_hash_former, all_deposits_hash_latter, last_deposit_index, all_txs_hash_former, all_txs_hash_latter, last_tx_index]} = Rollup(8,5,5,32,256);
