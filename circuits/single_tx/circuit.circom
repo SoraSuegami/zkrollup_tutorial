@@ -5,6 +5,7 @@ include "../../node_modules/circomlib/circuits/mimc.circom";
 include "../../node_modules/circomlib/circuits/eddsamimc.circom";
 include "../../node_modules/circomlib/circuits/sha256/sha256.circom";
 include "../../node_modules/circomlib/circuits/bitify.circom";
+include "../../node_modules/circomlib/circuits/comparators.circom";
 
 
 template ProcessTx(k,idBitSize,amoutnBitSize){
@@ -88,7 +89,18 @@ template ProcessTx(k,idBitSize,amoutnBitSize){
     // debit sender account and hash new sender leaf
     // 4. 新しいsenderのstateのhash値を求める。公開鍵は変わらないが、残高が変化するはず。
     // [Hint] MultiMiMC7 componentを利用する。ここで求めたhash値が、次のステップでmerkle treeに追加される。
-    component newSenderLeaf = /*[TODO]*/
+    component newSenderLeaf = MultiMiMC7(4,91);
+    newSenderLeaf.k <== 1;
+    newSenderLeaf.in[0] <== sender_account_id;
+    newSenderLeaf.in[1] <== sender_pubkey[0];
+    newSenderLeaf.in[2] <== sender_pubkey[1];
+    newSenderLeaf.in[3] <== (sender_balance - amount);
+    // ただし、sender_balance >= amountでなくてはならない。
+    // [Hint] GreaterEqThan componentを利用する。
+    component compare_balance = GreaterEqThan(amoutnBitSize);
+    compare_balance.in[0] <== sender_balance;
+    compare_balance.in[1] <== amount;
+    is_enable*(compare_balance.out - 1) === 0; 
     
     // 5. sender stateに対応するleafをnewSenderLeafに置き換えた時の、新しいmerkle treeのrootを求める。
     // [Hint] GetMerkleRootを使う。root値を求めるためにはpaths2_rootやpaths2_root_posの値が必要だが、1とは異なり入力値には直接含まれていない。
