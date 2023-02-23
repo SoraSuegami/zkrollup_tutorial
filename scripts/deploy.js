@@ -19,10 +19,14 @@ async function main() {
     const F = babyJub.F;
     const zeroId = 0;
     const zeroIdPubKey = [F.e(["1"]), F.e("1")];
+    console.log(zeroIdPubKey[0]);
     const zeroState = new State(zeroId, zeroIdPubKey[0], zeroIdPubKey[1], 0, mimc7);
     const stateTree = new StateTree(8, F, mimc7);
     stateTree.insertState(zeroState);
     const initRoot = "0x" + BigInt(F.toObject(stateTree.getRoot())).toString(16);
+    const stateJsons = stateTree.states.map(state => state.toJson(F));
+    // console.log(F.fromObject(BigInt(stateJsons[0].pubKey0)));
+    fs.writeFileSync("./storage/states.json", JSON.stringify(stateJsons, null, "\t"), { flag: "w" });
 
     const verifier = await Verifier.deploy();
     await verifier.deployed()
@@ -30,8 +34,7 @@ async function main() {
     const rollup = await Rollup.deploy(initRoot, 32, 32, verifier.address);
     await rollup.deployed();
     console.log("rollup deployed");
-    console.log(verifier.address);
-    console.log(rollup.address);
+    console.log("rollup contract address:", rollup.address);
 }
 
 main()

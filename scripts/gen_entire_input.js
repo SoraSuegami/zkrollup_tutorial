@@ -71,7 +71,7 @@ async function genEntireInput(stateTree, deposits, txs, signatureArray, maxDepos
         entire_input.deposit_proof_pos_array.push(input.deposit_proof_pos);
     }
     let allDepositInputs = "";
-    for (let i = 0; i < numTxs; i++) {
+    for (let i = 0; i < numDeposits; i++) {
         allDepositInputs = allDepositInputs + entire_input.deposit_hash_former_array[i].slice(2) + entire_input.deposit_hash_latter_array[i].slice(2);
     }
 

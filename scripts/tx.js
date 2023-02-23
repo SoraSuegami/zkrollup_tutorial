@@ -39,6 +39,14 @@ class Tx {
         return this.eddsa.signMiMC(privKey, msg);
     }
 
+    toJson(F) {
+        return {
+            senderAccountId: this.senderAccountId,
+            receiverAccountId: this.receiverAccountId,
+            amount: this.amount,
+        }
+    }
+
     // https://github.com/iden3/circomlib/blob/master/test/sha256.js#L18
     _buffer2bitArray(b) {
         const res = [];

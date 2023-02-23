@@ -18,7 +18,8 @@ async function main() {
     const l2PublicKey = eddsa.prv2pub(l2PrivateKey);
     mnemonic.accountId = accountId;
     mnemonic.l2PrivateKey = "0x" + F.toObject(l2PrivateKey).toString(16);
-    mnemonic.l2PublicKey = "0x" + F.toObject(l2PublicKey).toString(16);
+    mnemonic.l2PublicKey0 = "0x" + F.toObject(l2PublicKey[0]).toString(16);
+    mnemonic.l2PublicKey1 = "0x" + F.toObject(l2PublicKey[1]).toString(16);
     fs.writeFileSync(`./storage/account${accountId}.json`, JSON.stringify(mnemonic, null, "\t"));
 }
 main().then(() => console.log("ok")).catch(e => console.error(e));
