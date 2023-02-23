@@ -69,7 +69,7 @@ template Rollup(state_k, max_deposit_k, max_tx_k, amoutnBitSize, pubkeyBitSize) 
     // Process deposits
      // 1. last_deposit_indexの値からis_deposit_enable_arrayを求める。
     // [Hint] LessEqThanを使う。
-    for(var i = 0; i < max_tx; i++) {
+    for(var i = 0; i < max_deposit; i++) {
         is_deposit_enable_array[i] = LessEqThan(max_deposit_k);
         is_deposit_enable_array[i].in[0] <== i;
         is_deposit_enable_array[i].in[1] <== last_deposit_index;
@@ -79,9 +79,9 @@ template Rollup(state_k, max_deposit_k, max_tx_k, amoutnBitSize, pubkeyBitSize) 
     component allDepositHasher = Sha256(256 * max_deposit);
     // Num2Bits.Bits2Numはlittle endianのビット列を想定しているので、反転する必要があることに注意。
     // deposit_hash_former_array、deposit_hash_latter_arrayの各要素をビット列に変換し、それらを順にallDepositHasherの入力に入れる。
-    component depositHashFormers[max_tx];
-    component depositHashLatters[max_tx];
-    for(var i=0;i<max_tx;i++) {
+    component depositHashFormers[max_deposit];
+    component depositHashLatters[max_deposit];
+    for(var i=0;i<max_deposit;i++) {
         depositHashFormers[i] = Num2Bits(128);
         depositHashLatters[i] = Num2Bits(128);
         depositHashFormers[i].in <== deposit_hash_former_array[i];
@@ -104,7 +104,7 @@ template Rollup(state_k, max_deposit_k, max_tx_k, amoutnBitSize, pubkeyBitSize) 
     // 3. ProcessDepositでそれぞれのdepositのintermediate_rootを求める。
     // [Hint] old_accounts_rootにはintermediate_root_arrayの適切な要素を入れる。では、intermediate_root_arrayの初期値は？
     intermediate_root_array[0] <== old_accounts_root;
-    for(var i = 0; i < max_tx; i++) {
+    for(var i = 0; i < max_deposit; i++) {
         deposit_processers[i] = ProcessDeposit(state_k,state_k,amoutnBitSize,pubkeyBitSize);
         deposit_processers[i].old_accounts_root <== intermediate_root_array[i];
 
