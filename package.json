@@ -21,6 +21,7 @@
     "chai": "^4.3.7",
     "ethers": "^5.4",
     "hardhat": "^2.12.5",
+    "hardhat-contract-sizer": "^2.8.0",
     "hardhat-gas-reporter": "^1.0.9",
     "solidity-coverage": "^0.8.2",
     "typechain": "^8.1.1"

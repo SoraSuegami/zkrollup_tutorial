@@ -55,15 +55,17 @@ contract Rollup {
 
     function deposit(uint256 _pubKey0, uint256 _pubKey1) public payable {
         require(nextDeposits.length < maxDeposit);
+        uint8 accountId = numAccount;
         Deposit memory newDeposit = Deposit(
-            numAccount,
+            accountId,
             uint32(msg.value),
             _pubKey0,
             _pubKey1
         );
-        addressOfAccountId[numAccount] = msg.sender;
+        addressOfAccountId[accountId] = msg.sender;
         numAccount += 1;
         nextDeposits.push(newDeposit);
+        emit DepositEvent(msg.sender, accountId, msg.value);
     }
 
     function process(bytes calldata _inputs, bytes memory proof) public {
@@ -92,6 +94,18 @@ contract Rollup {
         stateRoot = newStateRoot;
         nonce += 1;
         delete nextDeposits;
+        for (uint256 i = 0; i < txs.length; i++) {
+            if (txs[i].receiverAccountId == 0) {
+                payable(addressOfAccountId[txs[i].senderAccountId]).transfer(
+                    txs[i].amount
+                );
+                emit WithdrawEvent(
+                    addressOfAccountId[txs[i].senderAccountId],
+                    txs[i].senderAccountId,
+                    txs[i].amount
+                );
+            }
+        }
     }
 
     function _hashAllDeposit() private view returns (bytes32) {
