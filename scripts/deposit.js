@@ -41,6 +41,15 @@ class Deposit {
         return this.eddsa.signMiMC(privKey, msg);
     }
 
+    toJson(F) {
+        return {
+            accountId: this.accountId,
+            amount: this.amount,
+            pubKey0: "0x" + F.toObject(this.pubKey0).toString(16),
+            pubKey1: "0x" + F.toObject(this.pubKey1).toString(16),
+        }
+    }
+
     // https://github.com/iden3/circomlib/blob/master/test/sha256.js#L18
     _buffer2bitArray(b) {
         const res = [];

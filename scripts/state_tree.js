@@ -2,15 +2,15 @@
 const assert = require("assert");
 
 class StateTree {
-    constructor(k, F, mimc7) {
+    constructor(k, F, mimc7, _states = []) {
         this.k = k;
         this.size = 1 << k;
         this.F = F;
         this.mimc7 = mimc7;
-        this.states = [];
+        this.states = _states;
         this.layers = [];
         this.root = this._computeRoot();
-        this.numNotEmptyStates = 0;
+        this.numNotEmptyStates = _states.length;
     }
 
     getRoot() {
