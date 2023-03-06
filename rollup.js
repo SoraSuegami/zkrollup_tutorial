@@ -20,7 +20,6 @@ async function main() {
 
     const statesJson = JSON.parse(fs.readFileSync("./storage/states.json"));
     const states = statesJson.map(json => new State(json.accountId, F.fromObject(json.pubKey0), F.fromObject(json.pubKey1), json.balance, mimc7));
-    console.log(states);
     const stateTree = new StateTree(8, F, mimc7, states);
 
     const depositJsonPath = "./storage/deposits.json";
@@ -30,9 +29,10 @@ async function main() {
     const txsJson = JSON.parse(fs.readFileSync(txsJsonPath));
     assert(txsJson.num_tx <= maxTx);
 
-    const deposits = depositsJson.deposits.map(depositJson => new Deposit(depositJson.accountId, depositJson.amount, F.fromObject(depositJson.pubKey0), F.fromObject(depositJson.pubKey1), babyJub, mimc7, eddsa));
-    // console.log(deposits[0].pubKey0);
-    // console.log(deposits[0].pubKey1);
+    const deposits = depositsJson.deposits.map(depositJson => {
+        const pubKey = babyJub.unpackPoint(Buffer.from(depositJson.pubKey.slice(2), "hex"));
+        return new Deposit(depositJson.accountId, depositJson.amount, pubKey[0], pubKey[1], babyJub, mimc7, eddsa)
+    });
     const txs = txsJson.txs.map(txJson => new Tx(txJson.senderAccountId, txJson.receiverAccountId, txJson.amount, mimc7, eddsa));
     const signatures = [];
     for (let i = 0; i < depositsJson.num_deposit; i++) {
@@ -43,9 +43,6 @@ async function main() {
         const signature = eddsa.unpackSignature(Uint8Array.from(Buffer.from(txsJson.signature[i].slice(2), "hex")));
         signatures.push(signature);
     }
-    console.log(stateTree);
-    console.log(deposits);
-    console.log(signatures[0]);
     const entire_input = await genEntireInput(stateTree, deposits, txs, signatures, maxDeposit, maxTx);
     fs.writeFileSync("./build/input.json", JSON.stringify(entire_input, null, "\t"), 'utf-8');
     execSync(`node ./build/main_js/generate_witness.js ./build/main_js/main.wasm ./build/input.json ./build/witness.wtns`);
@@ -72,9 +69,9 @@ async function main() {
 
     const stateJsons = stateTree.states.map(state => state.toJson(F));
     fs.writeFileSync("./storage/states.json", JSON.stringify(stateJsons, null, "\t"));
-    const emptyDeposits = { num_deposit: 0, deposits: [], signatureR8x: [], signatureR8y: [], signatureS: [] };
+    const emptyDeposits = { num_deposit: 0, deposits: [], signature: [] };
     fs.writeFileSync(depositJsonPath, JSON.stringify(emptyDeposits, null, "\t"));
-    const emptyTxs = { num_tx: 0, txs: [], signatureR8x: [], signatureR8y: [], signatureS: [] };
+    const emptyTxs = { num_tx: 0, txs: [], signature: [] };
     fs.writeFileSync(txsJsonPath, JSON.stringify(emptyTxs, null, "\t"));
 
 

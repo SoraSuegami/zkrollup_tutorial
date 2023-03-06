@@ -30,7 +30,7 @@ async function main() {
     const senderAccountId = Number(process.argv[3]);
     const receiverAccountId = 0;
     const amount = Number(process.argv[4]);
-    const accountJson = JSON.parse(fs.readFileSync(`./storage/account${senderAccountId}.json`));
+    const accountJson = JSON.parse(fs.readFileSync(`./storage/account${process.argv[3]}.json`));
     const privKey = F.fromObject(accountJson.l2PrivateKey);
     const tx = new Tx(senderAccountId, receiverAccountId, amount, mimc7, eddsa);
     const signature = tx.sign(privKey);

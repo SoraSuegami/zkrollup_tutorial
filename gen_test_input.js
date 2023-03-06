@@ -16,13 +16,9 @@ async function main() {
 
     const zeroId = 0;
     const zeroIdPubKey = [F.e(["1"]), F.e("1")];
-    console.log(zeroIdPubKey[0]);
     const alicePrvKey = F.fromObject("0x25376ebd1d1a31472580740aa066274eb114ce629440b270004361c69ff6c9b6");//Buffer.from("1".toString().padStart(64, "0"), "hex");
-    console.log(alicePrvKey);
-    const bobPrvKey = Buffer.from("2".toString().padStart(64, "0"), "hex");
+    const bobPrvKey = F.fromObject("0xc9b1e11a74429922e9ed986460d941c185068c19e981630ea48f3d7cacd9053");// Buffer.from("2".toString().padStart(64, "0"), "hex");
     const alicePubKey = eddsa.prv2pub(alicePrvKey);
-    // console.log(F.toObject(alicePubKey).toString(16));
-    // console.log((F.toObject(alicePubKey) & BigInt(0xff)).toString(16));
     const bobPubKey = eddsa.prv2pub(bobPrvKey);
     const aliceAccountId = 1;
     const bobAccountId = 2;
@@ -42,14 +38,6 @@ async function main() {
     const signature2 = tx0.sign(alicePrvKey);
     const tx1 = new Tx(bobAccountId, aliceAccountId, 2, mimc7, eddsa);
     const signature3 = tx1.sign(bobPrvKey);
-    // console.log("stateTree");
-    // console.log(stateTree);
-    // console.log(stateTree.getRoot());
-    console.log("deposit");
-    console.log(deposit0.pubKey0);
-    console.log(deposit0.pubKey1);
-    console.log("signature");
-    console.log(signature0);
     const entire_input = await genEntireInput(stateTree, [deposit0, deposit1], [tx0, tx1], [signature0, signature1, signature2, signature3], 1 << 5, 1 << 5);
     console.log("final alice balance: " + stateTree.getState(aliceAccountId).balance);
     console.log("final bob balance: " + stateTree.getState(bobAccountId).balance);

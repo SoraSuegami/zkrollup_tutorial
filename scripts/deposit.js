@@ -49,8 +49,9 @@ class Deposit {
         return {
             accountId: this.accountId,
             amount: this.amount,
-            pubKey0: "0x" + F.toObject(this.pubKey0).toString(16),
-            pubKey1: "0x" + F.toObject(this.pubKey1).toString(16),
+            pubKey: "0x" + Buffer.from(this.babyJub.packPoint([this.pubKey0, this.pubKey1])).toString("hex")
+            // pubKey0: "0x" + F.toObject(this.pubKey0).toString(16),
+            // pubKey1: "0x" + F.toObject(this.pubKey1).toString(16),
         }
     }
 

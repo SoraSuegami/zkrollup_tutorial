@@ -29,13 +29,13 @@ async function main() {
     const contractAddress = process.argv[2];
     const accountId = Number(process.argv[3]);
     const amount = Number(process.argv[4]);
-    const accountJson = JSON.parse(fs.readFileSync(`./storage/account${accountId}.json`));
+    const accountJson = JSON.parse(fs.readFileSync(`./storage/account${process.argv[3]}.json`));
     const privKey = F.fromObject(accountJson.l2PrivateKey);
-    const pubKey0 = F.fromObject(accountJson.l2PublicKey0);
-    const pubKey1 = F.fromObject(accountJson.l2PublicKey1);
+    const pubKey = eddsa.prv2pub(privKey);
+    const pubKey0 = pubKey[0];
+    const pubKey1 = pubKey[1];
     const deposit = new Deposit(accountId, amount, pubKey0, pubKey1, babyJub, mimc7, eddsa);
     const signature = deposit.sign(privKey);
-    console.log(signature);
     const packedSign = eddsa.packSignature(signature);
 
 
@@ -51,14 +51,6 @@ async function main() {
     deposits.num_deposit += 1;
     deposits.deposits.push(depositJson);
     deposits.signature.push("0x" + Buffer.from(packedSign).toString("hex"));
-    // deposits.signatureR8x.push(BigInt(F.toObject(signature.R8[0])).toString());
-    // console.log(signature.R8[0])
-    // console.log(F.toObject(signature.R8[0]))
-    // console.log(BigInt(F.toObject(signature.R8[0])))
-    // console.log(F.fromObject(BigInt(F.toObject(signature.R8[0])).toString()));
-    // deposits.signatureR8y.push(BigInt(F.toObject(signature.R8[1])).toString());
-    // deposits.signatureS.push(BigInt(signature.S).toString());
-    // console.log(BigInt(BigInt(signature.S).toString()))
     fs.writeFileSync(depositJsonPath, JSON.stringify(deposits, null, "\t"));
 }
 
