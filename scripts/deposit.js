@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const { buildBabyjub, buildMimc7, buildEddsa } = require("circomlibjs");
+const { assert } = require("console");
 
 class Deposit {
     constructor(accountId, amount, pubKey0, pubKey1, babyJub, mimc7, eddsa) {
@@ -38,7 +39,10 @@ class Deposit {
     sign(privKey) {
         const [txHashFormer, txHashLatter] = this.getDecomposedHash();
         const msg = this.mimc7.multiHash(["0x" + txHashFormer, "0x" + txHashLatter], 1);
-        return this.eddsa.signMiMC(privKey, msg);
+        const sign = this.eddsa.signMiMC(privKey, msg);
+        const pubKey = this.eddsa.prv2pub(privKey);
+        assert(this.eddsa.verifyMiMC(msg, sign, pubKey));
+        return sign;
     }
 
     toJson(F) {

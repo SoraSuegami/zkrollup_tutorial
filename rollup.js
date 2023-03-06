@@ -20,6 +20,7 @@ async function main() {
 
     const statesJson = JSON.parse(fs.readFileSync("./storage/states.json"));
     const states = statesJson.map(json => new State(json.accountId, F.fromObject(json.pubKey0), F.fromObject(json.pubKey1), json.balance, mimc7));
+    console.log(states);
     const stateTree = new StateTree(8, F, mimc7, states);
 
     const depositJsonPath = "./storage/deposits.json";
@@ -30,30 +31,29 @@ async function main() {
     assert(txsJson.num_tx <= maxTx);
 
     const deposits = depositsJson.deposits.map(depositJson => new Deposit(depositJson.accountId, depositJson.amount, F.fromObject(depositJson.pubKey0), F.fromObject(depositJson.pubKey1), babyJub, mimc7, eddsa));
+    // console.log(deposits[0].pubKey0);
+    // console.log(deposits[0].pubKey1);
     const txs = txsJson.txs.map(txJson => new Tx(txJson.senderAccountId, txJson.receiverAccountId, txJson.amount, mimc7, eddsa));
     const signatures = [];
     for (let i = 0; i < depositsJson.num_deposit; i++) {
-        const signature = {
-            R8: [F.fromObject(depositsJson.signatureR8x[i]), F.fromObject(depositsJson.signatureR8y[i])],
-            S: depositsJson.signatureS[i]
-        };
+        const signature = eddsa.unpackSignature(Uint8Array.from(Buffer.from(depositsJson.signature[i].slice(2), "hex")));
         signatures.push(signature);
     }
     for (let i = 0; i < txsJson.num_tx; i++) {
-        const signature = {
-            R8: [F.fromObject(txsJson.signatureR8x[i]), F.fromObject(txsJson.signatureR8y[i])],
-            S: txsJson.signatureS[i]
-        };
+        const signature = eddsa.unpackSignature(Uint8Array.from(Buffer.from(txsJson.signature[i].slice(2), "hex")));
         signatures.push(signature);
     }
+    console.log(stateTree);
+    console.log(deposits);
+    console.log(signatures[0]);
     const entire_input = await genEntireInput(stateTree, deposits, txs, signatures, maxDeposit, maxTx);
     fs.writeFileSync("./build/input.json", JSON.stringify(entire_input, null, "\t"), 'utf-8');
+    execSync(`node ./build/main_js/generate_witness.js ./build/main_js/main.wasm ./build/input.json ./build/witness.wtns`);
     execSync(`zkutil prove -c ./build/main.r1cs -p ./build/params.bin -r ./build/proof.json -o ./build/public.json -w ./build/witness.wtns`);
     const proofJson = JSON.parse(fs.readFileSync("./build/proof.json"));
     const proof = "0x" + proofJson.proof;
     const publicInputJson = JSON.parse(fs.readFileSync("./build/public.json"));
     const newRoot = "0x" + BigInt(publicInputJson[0]).toString(16);
-    console.log(newRoot);
     let txInputs = [];
     for (const tx of txs) {
         txInputs.push([tx.senderAccountId, tx.receiverAccountId, tx.amount]);
@@ -64,8 +64,6 @@ async function main() {
     const accountJson = JSON.parse(fs.readFileSync(`./storage/account0.json`));
     const provider = ethers.getDefaultProvider("http://127.0.0.1:8545/");
     const signer = new ethers.Wallet.fromMnemonic(accountJson.phrase).connect(provider);
-    // console.log(signer.address);
-    // console.log("Account balance:", (await signer.getBalance()).toString());
     const abiJson = JSON.parse(fs.readFileSync("./artifacts/contracts/Rollup.sol/Rollup.json"));
     const rollup = new ethers.Contract(contractAddress, abiJson.abi, signer);
 

@@ -18,7 +18,7 @@ async function main() {
     const states = statesJson.map(json => new State(json.accountId, F.fromObject(json.pubKey0), F.fromObject(json.pubKey1), json.balance, mimc7));
     const stateTree = new StateTree(8, F, mimc7, states);
 
-    let txs = { num_tx: 0, txs: [], signatureR8x: [], signatureR8y: [], signatureS: [] };
+    let txs = { num_tx: 0, txs: [], signature: [], };
     const txsJsonPath = "./storage/txs.json";
     if (!fs.existsSync(txsJsonPath)) {
         fs.writeFileSync(txsJsonPath, JSON.stringify([], null, "\t"));
@@ -34,13 +34,13 @@ async function main() {
     const privKey = F.fromObject(accountJson.l2PrivateKey);
     const tx = new Tx(senderAccountId, receiverAccountId, amount, mimc7, eddsa);
     const signature = tx.sign(privKey);
+    console.log(signature);
+    const packedSign = eddsa.packSignature(signature);
 
     const txJson = tx.toJson(F);
     txs.num_tx += 1;
     txs.txs.push(txJson);
-    txs.signatureR8x.push(BigInt(F.toObject(signature.R8[0])).toString());
-    txs.signatureR8y.push(BigInt(F.toObject(signature.R8[1])).toString());
-    txs.signatureS.push(BigInt(signature.S).toString());
+    txs.signature.push("0x" + Buffer.from(packedSign).toString("hex"));
     fs.writeFileSync(txsJsonPath, JSON.stringify(txs, null, "\t"));
 }
 

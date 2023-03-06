@@ -18,7 +18,7 @@ async function main() {
     const states = statesJson.map(json => new State(json.accountId, F.fromObject(json.pubKey0), F.fromObject(json.pubKey1), json.balance, mimc7));
     const stateTree = new StateTree(8, F, mimc7, states);
 
-    let deposits = { num_deposit: 0, deposits: [], signatureR8x: [], signatureR8y: [], signatureS: [] };
+    let deposits = { num_deposit: 0, deposits: [], signature: [] };
     const depositJsonPath = "./storage/deposits.json";
     if (!fs.existsSync(depositJsonPath)) {
         fs.writeFileSync(depositJsonPath, JSON.stringify([], null, "\t"));
@@ -35,12 +35,13 @@ async function main() {
     const pubKey1 = F.fromObject(accountJson.l2PublicKey1);
     const deposit = new Deposit(accountId, amount, pubKey0, pubKey1, babyJub, mimc7, eddsa);
     const signature = deposit.sign(privKey);
+    console.log(signature);
+    const packedSign = eddsa.packSignature(signature);
+
 
     const provider = ethers.getDefaultProvider("http://127.0.0.1:8545/");
 
     const signer = new ethers.Wallet.fromMnemonic(accountJson.phrase).connect(provider);
-    // console.log(signer.address);
-    // console.log("Account balance:", (await signer.getBalance()).toString());
     const abiJson = JSON.parse(fs.readFileSync("./artifacts/contracts/Rollup.sol/Rollup.json"));
     const rollup = new ethers.Contract(contractAddress, abiJson.abi, signer);
     const depositTx = await rollup.connect(signer).deposit(accountJson.l2PublicKey0, accountJson.l2PublicKey1, { from: signer.address, value: amount });
@@ -49,9 +50,15 @@ async function main() {
     const depositJson = deposit.toJson(F);
     deposits.num_deposit += 1;
     deposits.deposits.push(depositJson);
-    deposits.signatureR8x.push(BigInt(F.toObject(signature.R8[0])).toString());
-    deposits.signatureR8y.push(BigInt(F.toObject(signature.R8[1])).toString());
-    deposits.signatureS.push(BigInt(signature.S).toString());
+    deposits.signature.push("0x" + Buffer.from(packedSign).toString("hex"));
+    // deposits.signatureR8x.push(BigInt(F.toObject(signature.R8[0])).toString());
+    // console.log(signature.R8[0])
+    // console.log(F.toObject(signature.R8[0]))
+    // console.log(BigInt(F.toObject(signature.R8[0])))
+    // console.log(F.fromObject(BigInt(F.toObject(signature.R8[0])).toString()));
+    // deposits.signatureR8y.push(BigInt(F.toObject(signature.R8[1])).toString());
+    // deposits.signatureS.push(BigInt(signature.S).toString());
+    // console.log(BigInt(BigInt(signature.S).toString()))
     fs.writeFileSync(depositJsonPath, JSON.stringify(deposits, null, "\t"));
 }
 
